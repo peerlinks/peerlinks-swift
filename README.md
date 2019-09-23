@@ -2,6 +2,8 @@
 
 [![IRC Channel](https://img.shields.io/badge/IRC-%23peerlinks-1e72ff.svg?style=flat)][comm-irc]
 
+**WORK IN PROGRESS*
+
 Swift implementation of [PeerLinks Protocol][Protocol] for building
 "Distributed Secure IRC".
 
