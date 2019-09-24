@@ -10,6 +10,7 @@ class Link {
 
   static let EXPIRATION_DELTA: TimeInterval = 99 * 24 * 3600.0 // 99 days
   static let EXPIRATION_LEEWAY: TimeInterval  = 2 * 60.0 // 2 minutes
+  static let MAX_DISPLAY_NAME_LENGTH: Int = 128
 
   public typealias ValidityRange = (from: TimeInterval, to: TimeInterval)
   public typealias TBSResult = (tbs: Bytes, validity: ValidityRange)
@@ -19,6 +20,11 @@ class Link {
        trusteeName: String,
        validity: ValidityRange,
        signature: Bytes) throws {
+    if (trusteeName.count == 0 ||
+        trusteeName.count > Link.MAX_DISPLAY_NAME_LENGTH) {
+      throw BanError.invalidLinkDisplayNameSize(trusteeName.count)
+    }
+
     if (trusteePubKey.count != sodium.sign.PublicKeyBytes) {
       throw BanError.invalidLinkPublicKeySize(trusteePubKey.count)
     }
