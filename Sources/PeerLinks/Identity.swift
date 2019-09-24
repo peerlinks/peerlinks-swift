@@ -3,6 +3,7 @@ import Sodium
 
 public class Identity {
   let sodium: Sodium
+  var name: String
   let publicKey: Bytes
   let debugID: String
 
@@ -11,19 +12,21 @@ public class Identity {
 
   private var secretKey: Bytes
 
-  init(sodium: Sodium, publicKey: Bytes, secretKey: Bytes) {
+  init(sodium: Sodium, name: String, publicKey: Bytes, secretKey: Bytes) {
     self.sodium = sodium
+    self.name = name
     self.publicKey = publicKey
     self.secretKey = secretKey
 
     self.debugID = Debug.toID(sodium: sodium, publicKey: self.publicKey)
   }
 
-  convenience init(sodium: Sodium) {
+  convenience init(sodium: Sodium, name: String) {
     let keyPair = sodium.sign.keyPair()!
 
     self.init(
         sodium: sodium,
+        name: name,
         publicKey: keyPair.publicKey,
         secretKey: keyPair.secretKey)
   }
@@ -38,23 +41,28 @@ public class Identity {
 
   func issueLink(for trusteePubKey: Bytes,
                  trusteeName: String,
-                 validity: (from: TimeInterval, to: TimeInterval),
-                 andChannel channel: Channel) -> Link {
-    return Link()
+                 validity: Link.ValidityRange?,
+                 andChannel channel: Channel) throws -> Link {
+    let (tbs, validity) = try Link.tbs(
+        trusteePubKey: trusteePubKey,
+        trusteeName: trusteeName,
+        validity: validity,
+        andChannel: channel)
+    let signature = sign(tbs: tbs)
+
+    return Link(
+        sodium: sodium,
+        trusteePubKey: trusteePubKey,
+        trusteeName: trusteeName,
+        validity: validity,
+        signature: signature)
   }
 
-  func issueLink(for trusteePubKey: Bytes,
-                 trusteeName: String,
-                 andChannel channel: Channel) -> Link {
-    let now = NSDate().timeIntervalSince1970
+  //
+  // Sign/Verify
+  //
 
-    return issueLink(
-        for: trusteePubKey,
-        trusteeName: trusteeName,
-        validity: (
-          from: now - Link.EXPIRATION_LEEWAY,
-          to: now + Link.EXPIRATION_DELTA
-        ),
-        andChannel: channel)
+  func sign(tbs: Bytes) -> Bytes {
+    return sodium.sign.signature(message: tbs, secretKey: secretKey)!
   }
 }
