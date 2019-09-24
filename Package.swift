@@ -12,11 +12,12 @@ let package = Package(
     ],
     dependencies: [
       .package(url: "https://github.com/jedisct1/swift-sodium.git", .upToNextMinor(from: "0.8.0")),
+      .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.6.0"),
     ],
     targets: [
         .target(
             name: "PeerLinks",
-            dependencies: [ "Sodium" ]),
+            dependencies: [ "Sodium", "SwiftProtobuf" ]),
         .testTarget(
             name: "PeerLinksTests",
             dependencies: ["PeerLinks"]),

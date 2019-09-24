@@ -1,0 +1,223 @@
+syntax = "proto3";
+package p;
+
+//
+// Network
+//
+
+message Hello {
+  uint32 version = 1;
+  bytes peer_id = 2;
+}
+
+message Shake {
+  bool is_duplicate = 1;
+}
+
+message Link {
+  message TBS {
+    bytes trustee_pub_key = 1;
+    string trustee_display_name = 2;
+    double valid_from = 3;
+    double valid_to = 4;
+
+    // NOTE: This MUST be filled either by sender/recipient before
+    // generating/verifying the signature below.
+    bytes channel_id = 5;
+  }
+
+  TBS tbs = 1;
+
+  // crypto_sign_detached(signature, tbs, parentSecretKey)
+  bytes signature = 2;
+}
+
+message Invite {
+  bytes channel_pub_key = 1;
+  string channel_name = 2;
+
+  repeated Link chain = 3;
+}
+
+message EncryptedInvite {
+  // NOTE: `request_id = HASH(req.trustee_pub_key, 'peerlinks-invite')[:32]`
+  bytes request_id = 1;
+
+  bytes box = 2;
+}
+
+// Could be a QR Code, or a text message
+message InviteRequest {
+  bytes peer_id = 1;
+  bytes trustee_pub_key = 2;
+  bytes box_pub_key = 3;
+}
+
+message ChannelMessage {
+  // First message on any channel
+  message Root {
+  }
+
+  message Body {
+    oneof body {
+      Root root = 1;
+      string json = 2;
+    }
+  }
+
+  message TBS {
+    // NOTE: can be empty only in the root message
+    repeated bytes parents = 1;
+
+    // height = max(p.height for p in parents)
+    int64 height = 2;
+
+    // Link chain that leads from the channel's public key to the signer of
+    // this message
+    repeated Link chain = 3;
+
+    // Floating point unix time
+    double timestamp = 4;
+
+    // body of the message
+    Body body = 5;
+  }
+
+  TBS tbs = 1;
+
+  // crypto_sign_detached(signature, tbs, leafSecretKey)
+  bytes signature = 2;
+}
+
+message Query {
+  oneof cursor {
+    int64 height = 1;
+    bytes hash = 2;
+  }
+  bool is_backward = 3;
+  uint32 limit = 4;
+}
+
+message QueryResponse {
+  message Abbreviated {
+    repeated bytes parents = 1;
+    bytes hash = 2;
+  }
+
+  repeated Abbreviated abbreviated_messages = 1;
+  bytes forward_hash = 2;
+  bytes backward_hash = 3;
+}
+
+message Bulk {
+  repeated bytes hashes = 1;
+}
+
+message BulkResponse {
+  repeated ChannelMessage messages = 1;
+  uint32 forward_index = 2;
+}
+
+message SyncRequest {
+  message Content {
+    oneof content {
+      Query query = 1;
+      Bulk bulk = 2;
+    }
+  }
+
+  message TBS {
+    bytes channel_id = 1;
+    uint32 seq = 2;
+
+    // Empty for Feeds
+    repeated Link chain = 3;
+
+    // `crypto_secretbox_easy`
+    bytes nonce = 4;
+    bytes box = 5;
+
+    bytes response_pub_key = 6;
+  }
+
+  TBS tbs = 1;
+
+  // crypto_sign_detached(signature, tbs, leafSecretKey)
+  bytes signature = 2;
+}
+
+message SyncResponse {
+  message Content {
+    oneof content {
+      QueryResponse queryResponse = 1;
+      BulkResponse bulkResponse = 2;
+    }
+  }
+
+  bytes channel_id = 1;
+  uint32 seq = 2;
+
+  // Encrypted with `crypto_box_seal` using `sync_request.response_pub_key`
+  // from `SyncRequest`
+  bytes box = 3;
+}
+
+message Error {
+  string reason = 1;
+}
+
+message Notification {
+  bytes channel_id = 1;
+}
+
+message Ping {
+  uint32 seq = 1;
+}
+
+message Pong {
+  uint32 seq = 1;
+}
+
+message Packet {
+  oneof content {
+    Error error = 1;
+    EncryptedInvite invite = 2;
+
+    // Synchronization
+    SyncRequest sync_request = 3;
+    SyncResponse sync_response = 4;
+
+    // Request synchronization on new messages
+    Notification notification = 5;
+
+    // Networking
+    Ping ping = 6;
+    Pong pong = 7;
+  }
+}
+
+//
+// Storage
+//
+
+message Identity {
+  message ChannelChain {
+    bytes channel_id = 1;
+    repeated Link links = 2;
+  }
+
+  string name = 1;
+  bytes public_key = 2;
+  bytes secret_key = 3;
+
+  repeated ChannelChain channel_chains = 4;
+  string metadata = 5;
+}
+
+message Channel {
+  bytes public_key = 1;
+  string name = 2;
+  bool is_feed = 3;
+
+  string metadata = 4;
+}
