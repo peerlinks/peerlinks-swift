@@ -6,7 +6,7 @@ import Sodium
 final class PeerLinksTests: XCTestCase {
   let sodium = Sodium()
 
-  func testExample() {
+  func linkSerializeDeserialize() {
     let idA = Identity(sodium: sodium, name: "a")
     let idB = Identity(sodium: sodium, name: "b")
 
@@ -18,10 +18,13 @@ final class PeerLinksTests: XCTestCase {
         validity: nil,
         andChannel: channelA)
 
-    print("\(link)")
+    let data = try! link.serializedData()
+    let copy = try! Link.deserializeData(sodium: sodium, data: data)
+
+    print("\(copy)")
   }
 
   static var allTests = [
-    ("testExample", testExample),
+    ("linkSerializeDeserialize", linkSerializeDeserialize),
   ]
 }

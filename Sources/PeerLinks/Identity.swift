@@ -50,7 +50,7 @@ public class Identity {
         andChannel: channel)
     let signature = sign(tbs: tbs)
 
-    return Link(
+    return try Link(
         sodium: sodium,
         trusteePubKey: trusteePubKey,
         trusteeName: trusteeName,

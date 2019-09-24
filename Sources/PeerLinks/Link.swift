@@ -18,13 +18,56 @@ class Link {
        trusteePubKey: Bytes,
        trusteeName: String,
        validity: ValidityRange,
-       signature: Bytes) {
+       signature: Bytes) throws {
+    if (trusteePubKey.count != sodium.sign.PublicKeyBytes) {
+      throw BanError.invalidLinkPublicKeySize(trusteePubKey.count)
+    }
+    if (signature.count != sodium.sign.Bytes) {
+      throw BanError.invalidLinkSignatureSize(signature.count)
+    }
+
     self.sodium = sodium
     self.trusteePubKey = trusteePubKey
     self.trusteeName = trusteeName
     self.validity = validity
     self.signature = signature
   }
+
+  func serialize() -> P_Link {
+    return P_Link.with({ (link) in
+      link.tbs = P_Link.TBS.with({ (tbs) in
+        tbs.trusteePubKey = Data(self.trusteePubKey)
+        tbs.trusteeDisplayName = self.trusteeName
+        tbs.validFrom = self.validity.from
+        tbs.validTo = self.validity.to
+        // NOTE: The difference between tbs here and below is absence of
+        // channel id
+      })
+      link.signature = Data(self.signature)
+    })
+  }
+
+  func serializedData() throws -> Data {
+    return try serialize().serializedData()
+  }
+
+  static func deserialize(sodium: Sodium, link: P_Link) throws -> Link {
+    return try Link(
+        sodium: sodium,
+        trusteePubKey: Bytes(link.tbs.trusteePubKey),
+        trusteeName: link.tbs.trusteeDisplayName,
+        validity: (from: link.tbs.validFrom, to: link.tbs.validTo),
+        signature: Bytes(link.signature))
+  }
+
+  static func deserializeData(sodium: Sodium, data: Data) throws -> Link {
+    let link = try P_Link(serializedData: data)
+    return try Link.deserialize(sodium: sodium, link: link)
+  }
+
+  //
+  // Utils
+  //
 
   static func tbs(trusteePubKey: Bytes,
       trusteeName: String,
@@ -40,16 +83,16 @@ class Link {
     })()
 
     let tbs = P_Link.TBS.with({ (tbs) in
-        tbs.trusteePubKey = Data(trusteePubKey)
-        tbs.trusteeDisplayName = trusteeName
-        tbs.validFrom = validity.from
-        tbs.validTo = validity.to
-        tbs.channelID = Data(channel.id)
+      tbs.trusteePubKey = Data(trusteePubKey)
+      tbs.trusteeDisplayName = trusteeName
+      tbs.validFrom = validity.from
+      tbs.validTo = validity.to
+      tbs.channelID = Data(channel.id)
     })
 
     return (
-        tbs: Bytes(try tbs.serializedData()),
-        validity: validity
+      tbs: Bytes(try tbs.serializedData()),
+      validity: validity
     )
   }
 }
