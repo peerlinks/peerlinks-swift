@@ -8,6 +8,7 @@ final class PeerLinksTests: XCTestCase {
 
   func testExample() {
     let id = Identity(sodium: sodium)
+    print("{}", id.debugID)
   }
 
   static var allTests = [
