@@ -4,21 +4,21 @@
 import PackageDescription
 
 let package = Package(
-    name: "peerlinks-swift",
+    name: "PeerLinks",
     products: [
         .library(
-            name: "peerlinks-swift",
-            targets: ["peerlinks-swift"]),
+            name: "PeerLinks",
+            targets: ["PeerLinks"]),
     ],
     dependencies: [
       .package(url: "https://github.com/jedisct1/swift-sodium.git", .upToNextMinor(from: "0.8.0")),
     ],
     targets: [
         .target(
-            name: "peerlinks-swift",
-            dependencies: []),
+            name: "PeerLinks",
+            dependencies: [ "Sodium" ]),
         .testTarget(
-            name: "peerlinks-swiftTests",
-            dependencies: ["peerlinks-swift"]),
+            name: "PeerLinksTests",
+            dependencies: ["PeerLinks"]),
     ]
 )
