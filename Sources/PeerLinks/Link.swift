@@ -39,6 +39,16 @@ class Link {
     self.signature = signature
   }
 
+  func verify(withChannel channel: Channel,
+              publicKey: Bytes,
+              andTimestamp timestamp: TimeInterval? = nil) -> Bool {
+    return false
+  }
+
+  //
+  // Serialize/Deserialize
+  //
+
   func serialize() -> P_Link {
     return P_Link.with({ (link) in
       link.tbs = P_Link.TBS.with({ (tbs) in

@@ -15,7 +15,6 @@ final class PeerLinksTests: XCTestCase {
     let link = try! idA.issueLink(
         for: idB.publicKey,
         trusteeName: idB.name,
-        validity: nil,
         andChannel: channelA)
 
     let data = try! link.serializedData()

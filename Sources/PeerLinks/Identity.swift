@@ -41,7 +41,7 @@ public class Identity {
 
   func issueLink(for trusteePubKey: Bytes,
                  trusteeName: String,
-                 validity: Link.ValidityRange?,
+                 validity: Link.ValidityRange? = nil,
                  andChannel channel: Channel) throws -> Link {
     let (tbs, validity) = try Link.tbs(
         trusteePubKey: trusteePubKey,
