@@ -41,12 +41,12 @@ class Link {
 
   func verify(withChannel channel: Channel,
               publicKey: Bytes,
-              andTimestamp timestamp: TimeInterval? = nil) throws -> Bool {
+              andTimestamp timestamp: TimeInterval = Utils.now()) -> Bool {
     if (!isValid(timestamp: timestamp)) {
       return false
     }
 
-    let (tbs: tbs, validity: _) = try Link.tbs(trusteePubKey: trusteePubKey,
+    let (tbs: tbs, validity: _) = try! Link.tbs(trusteePubKey: trusteePubKey,
           trusteeName: trusteeName,
           validity: validity,
           andChannel: channel)
@@ -57,8 +57,7 @@ class Link {
         signature: signature)
   }
 
-  func isValid(timestamp: TimeInterval? = nil) -> Bool {
-    let timestamp = timestamp ?? Utils.now()
+  func isValid(timestamp: TimeInterval = Utils.now()) -> Bool {
     return validity.from <= timestamp && timestamp < validity.to
   }
 

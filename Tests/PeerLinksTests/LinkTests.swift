@@ -26,15 +26,15 @@ final class LinkTests: XCTestCase {
         andChannel: channel)
 
     XCTAssertTrue(
-        try! link.verify(withChannel: channel, publicKey: issuer.publicKey))
+        link.verify(withChannel: channel, publicKey: issuer.publicKey))
     XCTAssertTrue(link.isValid())
     XCTAssertFalse(
-        try! link.verify(withChannel: channel, publicKey: trustee.publicKey))
+        link.verify(withChannel: channel, publicKey: trustee.publicKey))
 
     // Invalid because of timestamp
     let ONE_YEAR: TimeInterval = 365 * 24 * 3600.0
 
-    XCTAssertFalse(try! link.verify(
+    XCTAssertFalse(link.verify(
           withChannel: channel,
           publicKey: issuer.publicKey,
           andTimestamp: Utils.now() + ONE_YEAR))
