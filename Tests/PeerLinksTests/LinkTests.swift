@@ -38,6 +38,6 @@ final class LinkTests: XCTestCase {
           withChannel: channel,
           publicKey: issuer.publicKey,
           andTimestamp: Utils.now() + ONE_YEAR))
-    XCTAssertFalse(link.isValid(timestamp: Utils.now() + ONE_YEAR))
+    XCTAssertFalse(link.isValid(at: Utils.now() + ONE_YEAR))
   }
 }

@@ -42,7 +42,7 @@ class Link {
   func verify(withChannel channel: Channel,
               publicKey: Bytes,
               andTimestamp timestamp: TimeInterval = Utils.now()) -> Bool {
-    if (!isValid(timestamp: timestamp)) {
+    if (!isValid(at: timestamp)) {
       return false
     }
 
@@ -57,7 +57,7 @@ class Link {
         signature: signature)
   }
 
-  func isValid(timestamp: TimeInterval = Utils.now()) -> Bool {
+  func isValid(at timestamp: TimeInterval = Utils.now()) -> Bool {
     return validity.from <= timestamp && timestamp < validity.to
   }
 
