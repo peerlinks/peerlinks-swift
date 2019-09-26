@@ -1,0 +1,43 @@
+import XCTest
+@testable import PeerLinks
+
+import Foundation
+import Sodium
+
+final class LinkTests: XCTestCase {
+  let sodium = Sodium()
+  var issuer: Identity!
+
+  override func setUp() {
+    issuer = Identity(sodium: sodium, name: "issuer")
+  }
+
+  func testIssuedByIdentity() {
+    let channel = Channel(
+        sodium: sodium,
+        publicKey: issuer.publicKey,
+        name: "test-channel")
+
+    let trustee = Identity(sodium: sodium, name: "trustee")
+
+    let link = try! issuer.issueLink(
+        for: trustee.publicKey,
+        trusteeName: trustee.name,
+        andChannel: channel)
+
+    XCTAssertTrue(
+        try! link.verify(withChannel: channel, publicKey: issuer.publicKey))
+    XCTAssertTrue(link.isValid())
+    XCTAssertFalse(
+        try! link.verify(withChannel: channel, publicKey: trustee.publicKey))
+
+    // Invalid because of timestamp
+    let ONE_YEAR: TimeInterval = 365 * 24 * 3600.0
+
+    XCTAssertFalse(try! link.verify(
+          withChannel: channel,
+          publicKey: issuer.publicKey,
+          andTimestamp: Utils.now() + ONE_YEAR))
+    XCTAssertFalse(link.isValid(timestamp: Utils.now() + ONE_YEAR))
+  }
+}

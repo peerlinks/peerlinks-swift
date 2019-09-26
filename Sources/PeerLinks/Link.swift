@@ -41,8 +41,25 @@ class Link {
 
   func verify(withChannel channel: Channel,
               publicKey: Bytes,
-              andTimestamp timestamp: TimeInterval? = nil) -> Bool {
-    return false
+              andTimestamp timestamp: TimeInterval? = nil) throws -> Bool {
+    if (!isValid(timestamp: timestamp)) {
+      return false
+    }
+
+    let (tbs: tbs, validity: _) = try Link.tbs(trusteePubKey: trusteePubKey,
+          trusteeName: trusteeName,
+          validity: validity,
+          andChannel: channel)
+
+    return sodium.sign.verify(
+        message: tbs,
+        publicKey: publicKey,
+        signature: signature)
+  }
+
+  func isValid(timestamp: TimeInterval? = nil) -> Bool {
+    let timestamp = timestamp ?? Utils.now()
+    return validity.from <= timestamp && timestamp < validity.to
   }
 
   //
@@ -87,10 +104,10 @@ class Link {
 
   static func tbs(trusteePubKey: Bytes,
       trusteeName: String,
-      validity maybeValidity: ValidityRange?,
+      validity: ValidityRange?,
       andChannel channel: Channel) throws -> TBSResult {
-    let validity = maybeValidity ?? ({
-      let now = NSDate().timeIntervalSince1970
+    let validity = validity ?? ({
+      let now = Utils.now()
 
       return (
         from: now - Link.EXPIRATION_LEEWAY,
