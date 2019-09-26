@@ -7,7 +7,7 @@ public class Channel {
   let debugID: String
   let id: Bytes
 
-  private let encryptionKey: Bytes
+  private var encryptionKey: Bytes
 
   static let ID_SIZE = 32
   static let ID_KEY = "peerlinks-channel-id".bytes
@@ -27,5 +27,9 @@ public class Channel {
         outputLength: sodium.secretBox.KeyBytes)!
 
     debugID = "\(Debug.toID(sodium: sodium, publicKey: publicKey))/\(name)"
+  }
+
+  deinit {
+    sodium.utils.zero(&encryptionKey)
   }
 }
