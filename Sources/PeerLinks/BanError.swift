@@ -4,4 +4,8 @@ public enum BanError: Error {
   case invalidLinkSignatureSize(Int)
 
   case invalidChainLength(Int)
+
+  case invalidMessageHashSize(Int)
+  case invalidMessageHeight(Int64)
+  case invalidMessageSignatureSize(Int)
 }
