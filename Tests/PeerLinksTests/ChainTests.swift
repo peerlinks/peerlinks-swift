@@ -27,6 +27,25 @@ final class ChainTests: XCTestCase {
         sodium: sodium, publicKey: idA.publicKey, name: "channel-b")
   }
 
-  func testIssuedByIdentity() {
+  func testLengthCheck() {
+    let links = [
+      try! idA.issueLink(
+          for: idB.publicKey, trusteeName: "b", andChannel: channelA),
+      try! idB.issueLink(
+          for: idC.publicKey, trusteeName: "c", andChannel: channelA),
+      try! idC.issueLink(
+          for: idD.publicKey, trusteeName: "d", andChannel: channelA),
+      try! idD.issueLink(
+          for: idA.publicKey, trusteeName: "a", andChannel: channelA),
+    ]
+
+    do {
+      let _ = try Chain(links: links)
+      XCTFail()
+    } catch BanError.invalidChainLength(let size) {
+      XCTAssertEqual(size, 4)
+    } catch {
+      XCTFail()
+    }
   }
 }
