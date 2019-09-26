@@ -40,4 +40,23 @@ final class LinkTests: XCTestCase {
           andTimestamp: Utils.now() + ONE_YEAR))
     XCTAssertFalse(link.isValid(at: Utils.now() + ONE_YEAR))
   }
+
+  func testThrowsOnInvalidNameLength() {
+    let channel = Channel(
+        sodium: sodium, publicKey: issuer.publicKey, name: "test-channel")
+
+    let trustee = Identity(sodium: sodium, name: "trustee")
+
+    do {
+      let _ = try issuer.issueLink(
+          for: trustee.publicKey,
+          trusteeName: String(repeating: "trustee", count: 100),
+          andChannel: channel)
+      XCTFail()
+    } catch BanError.invalidLinkDisplayNameSize(let size) {
+      XCTAssertEqual(size, 700)
+    } catch {
+      XCTFail()
+    }
+  }
 }
