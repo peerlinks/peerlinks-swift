@@ -59,4 +59,23 @@ final class LinkTests: XCTestCase {
       XCTFail()
     }
   }
+
+  func testSerializeDeserialize() {
+    let channel = Channel(
+        sodium: sodium, publicKey: issuer.publicKey, name: "test-channel")
+
+    let trustee = Identity(sodium: sodium, name: "trustee")
+
+    let link = try! issuer.issueLink(
+        for: trustee.publicKey,
+        trusteeName: trustee.name,
+        andChannel: channel)
+
+    let data = try! link.serializedData()
+    let deserialized = try! Link.deserializeData(sodium: sodium, data: data)
+
+    XCTAssertTrue(
+        deserialized.verify(withChannel: channel, publicKey: issuer.publicKey))
+    XCTAssertEqual(deserialized.trusteeName, "trustee")
+  }
 }
