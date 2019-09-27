@@ -17,8 +17,7 @@ public class Identity {
 
   var chains = [Channel: Chain]()
 
-  // TODO(indutny): use some serializable object
-  var metadata: [String: String]?
+  var metadata = [String: String]()
 
   private var secretKey: Bytes
 
