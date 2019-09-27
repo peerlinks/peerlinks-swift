@@ -54,6 +54,20 @@ public class Message {
     self.debugID = Debug.toID(sodium: sodium, hash: self.hash)
   }
 
+  convenience init(
+      sodium: Sodium,
+      tbs: P_ChannelMessage.TBS,
+      signature: Data) throws {
+    try self.init(
+        sodium: sodium,
+        body: tbs.body,
+        signature: signature,
+        chain: try Chain.deserialize(sodium: sodium, chain: tbs.chain),
+        parents: tbs.parents,
+        height: tbs.height,
+        timestamp: tbs.timestamp)
+  }
+
   var isRoot: Bool {
     switch body.body {
     case .root: return true
@@ -110,7 +124,7 @@ public class Message {
 
   func serializeTBS() -> P_ChannelMessage.TBS {
     return P_ChannelMessage.TBS.with({ (tbs) in
-      tbs.parents = self.parents.map({ (hash) in Data(hash) })
+      tbs.parents = self.parents
       tbs.height = self.height
       tbs.chain = self.chain.serialize()
       tbs.timestamp = self.timestamp
@@ -138,6 +152,21 @@ public class Message {
   //
   // Utils
   //
+
+  static func tbs(
+      for body: P_ChannelMessage.Body,
+      chain: Chain,
+      height: Int64,
+      parents: [Data],
+      andTimestamp timestamp: TimeInterval) -> P_ChannelMessage.TBS {
+    return P_ChannelMessage.TBS.with({ (tbs) in
+      tbs.parents = parents
+      tbs.height = height
+      tbs.chain = chain.serialize()
+      tbs.timestamp = timestamp
+      tbs.body = body
+    })
+  }
 
   static func root() -> P_ChannelMessage.Body {
     return P_ChannelMessage.Body.with({ (body) in

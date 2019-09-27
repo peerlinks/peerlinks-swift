@@ -1,7 +1,7 @@
 import Sodium
 import Foundation
 
-public class Channel {
+public class Channel: Hashable {
   let sodium: Sodium
   let publicKey: Data
   let name: String
@@ -29,5 +29,17 @@ public class Channel {
         outputLength: sodium.secretBox.KeyBytes)!)
 
     debugID = "\(Debug.toID(sodium: sodium, publicKey: publicKey))/\(name)"
+  }
+
+  //
+  // Hashable
+  //
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(publicKey)
+  }
+
+  public static func == (lhs: Channel, rhs: Channel) -> Bool {
+    return lhs.publicKey == rhs.publicKey
   }
 }
