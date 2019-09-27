@@ -49,9 +49,48 @@ public class Message {
     self.timestamp = timestamp
 
     self.hash = sodium.genericHash.hash(
-        message: Bytes(try serializedData()),
+        message: Bytes(serializedData()),
         outputLength: Message.HASH_SIZE)!
     self.debugID = Debug.toID(sodium: sodium, hash: self.hash)
+  }
+
+  var isRoot: Bool {
+    switch body.body {
+    case .root: return true
+    default: return false
+    }
+  }
+
+  func json<T: Codable>() throws -> T? {
+    switch body.body {
+    case .json(let json):
+      let decoder = JSONDecoder()
+      return try decoder.decode(T.self, from: Data(json.bytes))
+    default:
+      return nil
+    }
+  }
+
+  func getAuthor() -> (displayPaths: [String], publicKeys: [Bytes]) {
+    return (
+      displayPaths: chain.getDisplayPath(),
+      publicKeys: chain.getPublicKeys()
+    )
+  }
+
+  func verify(
+      for channel: Channel,
+      andTimestamp timestamp: TimeInterval = Utils.now()) -> Bool {
+    let tbs = try! serializeTBS().serializedData()
+    guard let leafKey = chain.getLeafKey(
+        for: channel, andTimestamp: timestamp) else {
+      return false
+    }
+
+    return sodium.sign.verify(
+        message: Bytes(tbs),
+        publicKey: leafKey,
+        signature: signature)
   }
 
   //
@@ -65,8 +104,8 @@ public class Message {
     })
   }
 
-  func serializedData() throws -> Data {
-    return try serialize().serializedData()
+  func serializedData() -> Data {
+    return try! serialize().serializedData()
   }
 
   func serializeTBS() -> P_ChannelMessage.TBS {

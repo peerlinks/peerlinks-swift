@@ -79,8 +79,8 @@ class Link {
     })
   }
 
-  func serializedData() throws -> Data {
-    return try serialize().serializedData()
+  func serializedData() -> Data {
+    return try! serialize().serializedData()
   }
 
   static func deserialize(sodium: Sodium, link: P_Link) throws -> Link {

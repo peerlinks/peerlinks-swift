@@ -71,7 +71,7 @@ final class LinkTests: XCTestCase {
         trusteeName: trustee.name,
         andChannel: channel)
 
-    let data = try! link.serializedData()
+    let data = link.serializedData()
     let deserialized = try! Link.deserializeData(sodium: sodium, data: data)
 
     XCTAssertTrue(
