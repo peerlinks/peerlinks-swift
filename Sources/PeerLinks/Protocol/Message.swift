@@ -139,6 +139,21 @@ public class Message {
   // Utils
   //
 
+  static func root() -> P_ChannelMessage.Body {
+    return P_ChannelMessage.Body.with({ (body) in
+      body.root = P_ChannelMessage.Root()
+    })
+  }
+
+  static func json<T: Codable>(_ value: T) throws -> P_ChannelMessage.Body {
+    let encoder = JSONEncoder()
+    let json = try encoder.encode(value)
+
+    return P_ChannelMessage.Body.with({ (body) in
+      body.json = String(data: json, encoding: .utf8)!
+    })
+  }
+
   static func checkHash(_ hash: Data) throws {
     if hash.count != Message.HASH_SIZE {
       throw BanError.invalidMessageHashSize(hash.count)
