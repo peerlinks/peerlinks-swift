@@ -78,6 +78,12 @@ public class Chain {
     })
   }
 
+  static func deserialize(sodium: Sodium, chain: [P_Link]) throws -> Chain {
+    return try Chain(links: chain.map({ (link) in
+      return try Link.deserialize(sodium: sodium, link: link)
+    }))
+  }
+
   static func append(chain: Chain, link: Link) throws -> Chain {
     return try Chain(links: chain.links + [ link ])
   }

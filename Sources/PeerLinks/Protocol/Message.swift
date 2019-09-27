@@ -79,6 +79,23 @@ public class Message {
     })
   }
 
+  static func deserialize(sodium: Sodium,
+                          message: P_ChannelMessage) throws -> Message {
+    let tbs = message.tbs
+    return try Message(sodium: sodium,
+        body: tbs.body,
+        signature: Bytes(message.signature),
+        chain: try Chain.deserialize(sodium: sodium, chain: tbs.chain),
+        parents: tbs.parents.map({ (hash) in Bytes(hash) }),
+        height: tbs.height,
+        timestamp: tbs.timestamp)
+  }
+
+  static func deserializeData(sodium: Sodium, data: Data) throws -> Message {
+    let message = try P_ChannelMessage(serializedData: data)
+    return try Message.deserialize(sodium: sodium, message: message)
+  }
+
   //
   // Utils
   //
