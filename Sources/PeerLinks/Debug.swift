@@ -1,13 +1,14 @@
+import Foundation
 import Sodium
 
 internal class Debug {
-  static func toID(sodium: Sodium, publicKey: Bytes) -> String {
-    let hex = sodium.utils.bin2hex(publicKey) ?? ""
+  static func toID(sodium: Sodium, publicKey: Data) -> String {
+    let hex = sodium.utils.bin2hex(Bytes(publicKey)) ?? ""
     return String(hex.prefix(8))
   }
 
-  static func toID(sodium: Sodium, hash: Bytes) -> String {
-    let hex = sodium.utils.bin2hex(hash) ?? ""
+  static func toID(sodium: Sodium, hash: Data) -> String {
+    let hex = sodium.utils.bin2hex(Bytes(hash)) ?? ""
     return String(hex.prefix(8))
   }
 }

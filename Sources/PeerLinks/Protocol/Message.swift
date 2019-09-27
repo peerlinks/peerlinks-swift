@@ -4,22 +4,22 @@ import Sodium
 public class Message {
   let sodium: Sodium
   let body: P_ChannelMessage.Body
-  let signature: Bytes
+  let signature: Data
   let chain: Chain
-  let parents: [Bytes]
+  let parents: [Data]
   let height: Int64
   let timestamp: TimeInterval
 
-  var hash: Bytes!
+  var hash: Data!
   var debugID: String!
 
   static let HASH_SIZE = 32
 
   init(sodium: Sodium,
        body: P_ChannelMessage.Body,
-       signature: Bytes,
+       signature: Data,
        chain: Chain,
-       parents: [Bytes] = [],
+       parents: [Data] = [],
        height: Int64 = 0,
        timestamp: TimeInterval = Utils.now()) throws {
     for parent in parents {
@@ -48,9 +48,9 @@ public class Message {
     self.height = height
     self.timestamp = timestamp
 
-    self.hash = sodium.genericHash.hash(
+    self.hash = Data(sodium.genericHash.hash(
         message: Bytes(serializedData()),
-        outputLength: Message.HASH_SIZE)!
+        outputLength: Message.HASH_SIZE)!)
     self.debugID = Debug.toID(sodium: sodium, hash: self.hash)
   }
 
@@ -71,7 +71,7 @@ public class Message {
     }
   }
 
-  func getAuthor() -> (displayPaths: [String], publicKeys: [Bytes]) {
+  func getAuthor() -> (displayPaths: [String], publicKeys: [Data]) {
     return (
       displayPaths: chain.getDisplayPath(),
       publicKeys: chain.getPublicKeys()
@@ -89,8 +89,8 @@ public class Message {
 
     return sodium.sign.verify(
         message: Bytes(tbs),
-        publicKey: leafKey,
-        signature: signature)
+        publicKey: Bytes(leafKey),
+        signature: Bytes(signature))
   }
 
   //
@@ -123,9 +123,9 @@ public class Message {
     let tbs = message.tbs
     return try Message(sodium: sodium,
         body: tbs.body,
-        signature: Bytes(message.signature),
+        signature: message.signature,
         chain: try Chain.deserialize(sodium: sodium, chain: tbs.chain),
-        parents: tbs.parents.map({ (hash) in Bytes(hash) }),
+        parents: tbs.parents,
         height: tbs.height,
         timestamp: tbs.timestamp)
   }
@@ -139,7 +139,7 @@ public class Message {
   // Utils
   //
 
-  static func checkHash(_ hash: Bytes) throws {
+  static func checkHash(_ hash: Data) throws {
     if hash.count != Message.HASH_SIZE {
       throw BanError.invalidMessageHashSize(hash.count)
     }

@@ -3,23 +3,23 @@ import Sodium
 
 class Link {
   let sodium: Sodium
-  let trusteePubKey: Bytes
+  let trusteePubKey: Data
   let trusteeName: String
   let validity: ValidityRange
-  let signature: Bytes
+  let signature: Data
 
   static let EXPIRATION_DELTA: TimeInterval = 99 * 24 * 3600.0 // 99 days
   static let EXPIRATION_LEEWAY: TimeInterval  = 2 * 60.0 // 2 minutes
   static let MAX_DISPLAY_NAME_LENGTH: Int = 128
 
   public typealias ValidityRange = (from: TimeInterval, to: TimeInterval)
-  public typealias TBSResult = (tbs: Bytes, validity: ValidityRange)
+  public typealias TBSResult = (tbs: Data, validity: ValidityRange)
 
   init(sodium: Sodium,
-       trusteePubKey: Bytes,
+       trusteePubKey: Data,
        trusteeName: String,
        validity: ValidityRange,
-       signature: Bytes) throws {
+       signature: Data) throws {
     if (trusteeName.count == 0 ||
         trusteeName.count > Link.MAX_DISPLAY_NAME_LENGTH) {
       throw BanError.invalidLinkDisplayNameSize(trusteeName.count)
@@ -40,21 +40,21 @@ class Link {
   }
 
   func verify(withChannel channel: Channel,
-              publicKey: Bytes,
+              publicKey: Data,
               andTimestamp timestamp: TimeInterval = Utils.now()) -> Bool {
     if (!isValid(at: timestamp)) {
       return false
     }
 
-    let (tbs: tbs, validity: _) = try! Link.tbs(trusteePubKey: trusteePubKey,
+    let (tbs: tbs, validity: _) = Link.tbs(trusteePubKey: trusteePubKey,
           trusteeName: trusteeName,
           validity: validity,
           andChannel: channel)
 
     return sodium.sign.verify(
-        message: tbs,
-        publicKey: publicKey,
-        signature: signature)
+        message: Bytes(tbs),
+        publicKey: Bytes(publicKey),
+        signature: Bytes(signature))
   }
 
   func isValid(at timestamp: TimeInterval = Utils.now()) -> Bool {
@@ -86,10 +86,10 @@ class Link {
   static func deserialize(sodium: Sodium, link: P_Link) throws -> Link {
     return try Link(
         sodium: sodium,
-        trusteePubKey: Bytes(link.tbs.trusteePubKey),
+        trusteePubKey: link.tbs.trusteePubKey,
         trusteeName: link.tbs.trusteeDisplayName,
         validity: (from: link.tbs.validFrom, to: link.tbs.validTo),
-        signature: Bytes(link.signature))
+        signature: link.signature)
   }
 
   static func deserializeData(sodium: Sodium, data: Data) throws -> Link {
@@ -101,10 +101,10 @@ class Link {
   // Utils
   //
 
-  static func tbs(trusteePubKey: Bytes,
+  static func tbs(trusteePubKey: Data,
       trusteeName: String,
       validity: ValidityRange?,
-      andChannel channel: Channel) throws -> TBSResult {
+      andChannel channel: Channel) -> TBSResult {
     let validity = validity ?? ({
       let now = Utils.now()
 
@@ -123,7 +123,7 @@ class Link {
     })
 
     return (
-      tbs: Bytes(try tbs.serializedData()),
+      tbs: try! tbs.serializedData(),
       validity: validity
     )
   }

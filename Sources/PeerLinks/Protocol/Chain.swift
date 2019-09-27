@@ -16,8 +16,8 @@ public class Chain {
 
   func getLeafKey(
       for channel: Channel,
-      andTimestamp timestamp: TimeInterval = Utils.now()) -> Bytes? {
-    var leafKey: Bytes = channel.publicKey
+      andTimestamp timestamp: TimeInterval = Utils.now()) -> Data? {
+    var leafKey: Data = channel.publicKey
     for link in links {
       let isValid = link.verify(
           withChannel: channel,
@@ -28,10 +28,10 @@ public class Chain {
       }
       leafKey = link.trusteePubKey
     }
-    return leafKey
+    return Data(leafKey)
   }
 
-  func getPublicKeys() -> [Bytes] {
+  func getPublicKeys() -> [Data] {
     return links.map({ (link) in
       return link.trusteePubKey
     })

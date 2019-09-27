@@ -4,7 +4,7 @@ import Sodium
 public class Identity {
   let sodium: Sodium
   var name: String
-  let publicKey: Bytes
+  let publicKey: Data
   let debugID: String
 
   // TODO(indutny): use some serializable object
@@ -12,11 +12,11 @@ public class Identity {
 
   private var secretKey: Bytes
 
-  init(sodium: Sodium, name: String, publicKey: Bytes, secretKey: Bytes) {
+  init(sodium: Sodium, name: String, publicKey: Data, secretKey: Data) {
     self.sodium = sodium
     self.name = name
     self.publicKey = publicKey
-    self.secretKey = secretKey
+    self.secretKey = Bytes(secretKey)
 
     self.debugID = Debug.toID(sodium: sodium, publicKey: self.publicKey)
   }
@@ -27,8 +27,8 @@ public class Identity {
     self.init(
         sodium: sodium,
         name: name,
-        publicKey: keyPair.publicKey,
-        secretKey: keyPair.secretKey)
+        publicKey: Data(keyPair.publicKey),
+        secretKey: Data(keyPair.secretKey))
   }
 
   deinit {
@@ -39,11 +39,11 @@ public class Identity {
   // Chains
   //
 
-  func issueLink(for trusteePubKey: Bytes,
+  func issueLink(for trusteePubKey: Data,
                  trusteeName: String,
                  validity: Link.ValidityRange? = nil,
                  andChannel channel: Channel) throws -> Link {
-    let (tbs, validity) = try Link.tbs(
+    let (tbs, validity) = Link.tbs(
         trusteePubKey: trusteePubKey,
         trusteeName: trusteeName,
         validity: validity,
@@ -62,7 +62,9 @@ public class Identity {
   // Sign/Verify
   //
 
-  func sign(tbs: Bytes) -> Bytes {
-    return sodium.sign.signature(message: tbs, secretKey: secretKey)!
+  func sign(tbs: Data) -> Data {
+    return Data(sodium.sign.signature(
+        message: Bytes(tbs),
+        secretKey: secretKey)!)
   }
 }
