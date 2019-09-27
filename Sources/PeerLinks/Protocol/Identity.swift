@@ -108,6 +108,16 @@ public class Identity {
     chains.removeValue(forKey: channel)
   }
 
+  func getChannelIds(at timestamp: TimeInterval = Utils.now()) -> [Data] {
+    var result = [Data]()
+    for (channel, chain) in chains {
+      if chain.isValid(at: timestamp + Link.EXPIRATION_LEEWAY) {
+        result.append(channel.id)
+      }
+    }
+    return result
+  }
+
   //
   // Messages
   //
