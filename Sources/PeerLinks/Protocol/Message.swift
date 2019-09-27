@@ -174,9 +174,9 @@ public class Message {
     })
   }
 
-  static func json<T: Codable>(_ value: T) throws -> P_ChannelMessage.Body {
+  static func json<T: Codable>(_ value: T) -> P_ChannelMessage.Body {
     let encoder = JSONEncoder()
-    let json = try encoder.encode(value)
+    let json = try! encoder.encode(value)
 
     return P_ChannelMessage.Body.with({ (body) in
       body.json = String(data: json, encoding: .utf8)!

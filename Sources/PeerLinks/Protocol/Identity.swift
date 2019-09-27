@@ -67,7 +67,7 @@ public class Identity {
         signature: signature)
   }
 
-  func addChain(_ chain: Chain, for channel: Channel) throws {
+  func add(chain: Chain, for channel: Channel) throws {
     if !chain.isValid() {
       throw IdentityError.invalidChain(chain)
     }
@@ -76,7 +76,7 @@ public class Identity {
       throw IdentityError.noLeafKeyInChain(chain)
     }
 
-    if leafKey == publicKey {
+    if leafKey != publicKey {
       throw IdentityError.invalidLeafKey(chain)
     }
 
@@ -122,7 +122,7 @@ public class Identity {
   //
 
   func sign(
-      body: P_ChannelMessage.Body,
+      messageBody body: P_ChannelMessage.Body,
       for channel: Channel,
       height: Int64 = 0,
       parents: [Data] = [],
