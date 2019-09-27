@@ -14,7 +14,11 @@ public class Channel: Hashable {
   static let ID_KEY = "peerlinks-channel-id".bytes
   static let ENC_KEY = "peerlinks-symmetric".bytes
 
-  init(sodium: Sodium, publicKey: Data, name: String) {
+  init(sodium: Sodium, publicKey: Data, name: String) throws {
+    if (publicKey.count != sodium.sign.PublicKeyBytes) {
+      throw BanError.invalidChannelPublicKeySize(publicKey.count)
+    }
+
     self.sodium = sodium
     self.publicKey = publicKey
     self.name = name

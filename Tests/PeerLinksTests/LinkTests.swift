@@ -13,7 +13,7 @@ final class LinkTests: XCTestCase {
   }
 
   func testIssuedByIdentity() {
-    let channel = Channel(
+    let channel = try! Channel(
         sodium: sodium,
         publicKey: issuer.publicKey,
         name: "test-channel")
@@ -42,7 +42,7 @@ final class LinkTests: XCTestCase {
   }
 
   func testThrowsOnInvalidNameLength() {
-    let channel = Channel(
+    let channel = try! Channel(
         sodium: sodium, publicKey: issuer.publicKey, name: "test-channel")
 
     let trustee = Identity(sodium: sodium, name: "trustee")
@@ -61,7 +61,7 @@ final class LinkTests: XCTestCase {
   }
 
   func testSerializeDeserialize() {
-    let channel = Channel(
+    let channel = try! Channel(
         sodium: sodium, publicKey: issuer.publicKey, name: "test-channel")
 
     let trustee = Identity(sodium: sodium, name: "trustee")

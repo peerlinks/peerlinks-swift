@@ -1,4 +1,6 @@
 public enum BanError: Error {
+  case invalidChannelPublicKeySize(Int)
+
   case invalidLinkDisplayNameSize(Int)
   case invalidLinkPublicKeySize(Int)
   case invalidLinkSignatureSize(Int)

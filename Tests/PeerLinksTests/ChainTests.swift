@@ -21,9 +21,9 @@ final class ChainTests: XCTestCase {
     idC = Identity(sodium: sodium, name: "c")
     idD = Identity(sodium: sodium, name: "d")
 
-    channelA = Channel(
+    channelA = try! Channel(
         sodium: sodium, publicKey: idA.publicKey, name: "channel-a")
-    channelB = Channel(
+    channelB = try! Channel(
         sodium: sodium, publicKey: idA.publicKey, name: "channel-b")
   }
 
