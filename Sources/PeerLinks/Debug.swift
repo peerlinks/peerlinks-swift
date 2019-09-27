@@ -5,4 +5,9 @@ internal class Debug {
     let hex = sodium.utils.bin2hex(publicKey) ?? ""
     return String(hex.prefix(8))
   }
+
+  static func toID(sodium: Sodium, hash: Bytes) -> String {
+    let hex = sodium.utils.bin2hex(hash) ?? ""
+    return String(hex.prefix(8))
+  }
 }

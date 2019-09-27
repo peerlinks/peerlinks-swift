@@ -8,4 +8,5 @@ public enum BanError: Error {
   case invalidMessageHashSize(Int)
   case invalidMessageHeight(Int64)
   case invalidMessageSignatureSize(Int)
+  case invalidMessageJSON
 }
