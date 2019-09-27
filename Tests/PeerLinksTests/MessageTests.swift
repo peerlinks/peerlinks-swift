@@ -43,4 +43,20 @@ final class MessageTests: XCTestCase {
     XCTAssertEqual(message.chain.getLeafKey(for: channel),
         second.publicKey)
   }
+
+  func testSerializedDeserialized() {
+    let (tbs: tbs, signature: signature) = try! id.sign(
+        messageBody: Message.json([ "okay": "ohai" ]),
+        for: channel,
+        height: 0,
+        parents: [])
+
+    let message = try! Message(sodium: sodium, tbs: tbs, signature: signature)
+
+    let data = message.serializedData()
+    let copy = try! Message.deserializeData(sodium: sodium, data: data)
+
+    XCTAssertEqual(copy.height, message.height);
+    XCTAssertEqual(copy.parents, message.parents);
+  }
 }
