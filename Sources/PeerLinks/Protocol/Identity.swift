@@ -164,10 +164,19 @@ public class Identity {
 
   func canPost(to channel: Channel,
                at timestamp: TimeInterval = Utils.now()) -> Bool {
-    guard let chain = getChain(for: channel) else {
+    guard let chain = getChain(for: channel, andTimestamp: timestamp) else {
       return false
     }
 
     return chain.verify(for: channel, andTimestamp: timestamp)
+  }
+
+  func canInvite(to channel: Channel,
+                 at timestamp: TimeInterval = Utils.now()) -> Bool {
+    if (!canPost(to: channel, at: timestamp)) {
+      return false
+    }
+
+    return getChain(for: channel, andTimestamp: timestamp)?.canAppend() ?? false
   }
 }
