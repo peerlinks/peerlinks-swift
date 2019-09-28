@@ -59,4 +59,23 @@ final class MessageTests: XCTestCase {
     XCTAssertEqual(copy.height, message.height);
     XCTAssertEqual(copy.parents, message.parents);
   }
+
+  func testThrowOnBadJSON() {
+    let (tbs: tbs, signature: signature) = try! id.sign(
+        messageBody: P_ChannelMessage.Body.with({ (body) in
+          body.json = "not-json"
+        }),
+        for: channel,
+        height: 0,
+        parents: [])
+
+    do {
+      let _ = try Message(sodium: sodium, tbs: tbs, signature: signature)
+      XCTFail()
+    } catch BanError.invalidMessageJSON {
+      // ok
+    } catch {
+      XCTFail()
+    }
+  }
 }
