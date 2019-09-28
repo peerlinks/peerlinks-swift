@@ -11,4 +11,8 @@ public enum BanError: Error {
   case invalidMessageHeight(Int64)
   case invalidMessageSignatureSize(Int)
   case invalidMessageJSON
+
+  case invalidEncryptedBoxSize(Int)
+  case invalidEncryptedBox
+  case invalidBoxPublicKeySize(Int)
 }
