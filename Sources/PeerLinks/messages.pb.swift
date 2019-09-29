@@ -383,27 +383,27 @@ struct P_SyncRequest {
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  var tbs: P_SyncRequest.TBS {
-    get {return _storage._tbs ?? P_SyncRequest.TBS()}
-    set {_uniqueStorage()._tbs = newValue}
-  }
-  /// Returns true if `tbs` has been explicitly set.
-  var hasTbs: Bool {return _storage._tbs != nil}
-  /// Clears the value of `tbs`. Subsequent reads from it will return its default value.
-  mutating func clearTbs() {_uniqueStorage()._tbs = nil}
+  var channelID: Data = SwiftProtobuf.Internal.emptyData
 
-  /// crypto_sign_detached(signature, tbs, leafSecretKey)
-  var signature: Data {
-    get {return _storage._signature}
-    set {_uniqueStorage()._signature = newValue}
-  }
+  var seq: UInt32 = 0
+
+  /// `crypto_secretbox_easy(out, Content, symmetric_key)`
+  var nonce: Data = SwiftProtobuf.Internal.emptyData
+
+  var box: Data = SwiftProtobuf.Internal.emptyData
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
-  struct Content {
+  struct TBS {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
+
+    /// Empty for Feeds
+    var chain: [P_Link] {
+      get {return _storage._chain}
+      set {_uniqueStorage()._chain = newValue}
+    }
 
     var content: OneOf_Content? {
       get {return _storage._content}
@@ -426,6 +426,11 @@ struct P_SyncRequest {
       set {_uniqueStorage()._content = .bulk(newValue)}
     }
 
+    var responsePubKey: Data {
+      get {return _storage._responsePubKey}
+      set {_uniqueStorage()._responsePubKey = newValue}
+    }
+
     var unknownFields = SwiftProtobuf.UnknownStorage()
 
     enum OneOf_Content: Equatable {
@@ -433,7 +438,7 @@ struct P_SyncRequest {
       case bulk(P_Bulk)
 
     #if !swift(>=4.1)
-      static func ==(lhs: P_SyncRequest.Content.OneOf_Content, rhs: P_SyncRequest.Content.OneOf_Content) -> Bool {
+      static func ==(lhs: P_SyncRequest.TBS.OneOf_Content, rhs: P_SyncRequest.TBS.OneOf_Content) -> Bool {
         switch (lhs, rhs) {
         case (.query(let l), .query(let r)): return l == r
         case (.bulk(let l), .bulk(let r)): return l == r
@@ -448,33 +453,34 @@ struct P_SyncRequest {
     fileprivate var _storage = _StorageClass.defaultInstance
   }
 
-  struct TBS {
+  struct Content {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
 
-    var channelID: Data = SwiftProtobuf.Internal.emptyData
+    var tbs: P_SyncRequest.TBS {
+      get {return _storage._tbs ?? P_SyncRequest.TBS()}
+      set {_uniqueStorage()._tbs = newValue}
+    }
+    /// Returns true if `tbs` has been explicitly set.
+    var hasTbs: Bool {return _storage._tbs != nil}
+    /// Clears the value of `tbs`. Subsequent reads from it will return its default value.
+    mutating func clearTbs() {_uniqueStorage()._tbs = nil}
 
-    var seq: UInt32 = 0
-
-    /// Empty for Feeds
-    var chain: [P_Link] = []
-
-    /// `crypto_secretbox_easy`
-    var nonce: Data = SwiftProtobuf.Internal.emptyData
-
-    var box: Data = SwiftProtobuf.Internal.emptyData
-
-    var responsePubKey: Data = SwiftProtobuf.Internal.emptyData
+    /// crypto_sign_detached(signature, tbs, leafSecretKey)
+    var signature: Data {
+      get {return _storage._signature}
+      set {_uniqueStorage()._signature = newValue}
+    }
 
     var unknownFields = SwiftProtobuf.UnknownStorage()
 
     init() {}
+
+    fileprivate var _storage = _StorageClass.defaultInstance
   }
 
   init() {}
-
-  fileprivate var _storage = _StorageClass.defaultInstance
 }
 
 struct P_SyncResponse {
@@ -1511,6 +1517,150 @@ extension P_BulkResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplement
 extension P_SyncRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".SyncRequest"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "channel_id"),
+    2: .same(proto: "seq"),
+    3: .same(proto: "nonce"),
+    4: .same(proto: "box"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      switch fieldNumber {
+      case 1: try decoder.decodeSingularBytesField(value: &self.channelID)
+      case 2: try decoder.decodeSingularUInt32Field(value: &self.seq)
+      case 3: try decoder.decodeSingularBytesField(value: &self.nonce)
+      case 4: try decoder.decodeSingularBytesField(value: &self.box)
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.channelID.isEmpty {
+      try visitor.visitSingularBytesField(value: self.channelID, fieldNumber: 1)
+    }
+    if self.seq != 0 {
+      try visitor.visitSingularUInt32Field(value: self.seq, fieldNumber: 2)
+    }
+    if !self.nonce.isEmpty {
+      try visitor.visitSingularBytesField(value: self.nonce, fieldNumber: 3)
+    }
+    if !self.box.isEmpty {
+      try visitor.visitSingularBytesField(value: self.box, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: P_SyncRequest, rhs: P_SyncRequest) -> Bool {
+    if lhs.channelID != rhs.channelID {return false}
+    if lhs.seq != rhs.seq {return false}
+    if lhs.nonce != rhs.nonce {return false}
+    if lhs.box != rhs.box {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension P_SyncRequest.TBS: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = P_SyncRequest.protoMessageName + ".TBS"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "chain"),
+    2: .same(proto: "query"),
+    3: .same(proto: "bulk"),
+    4: .standard(proto: "response_pub_key"),
+  ]
+
+  fileprivate class _StorageClass {
+    var _chain: [P_Link] = []
+    var _content: P_SyncRequest.TBS.OneOf_Content?
+    var _responsePubKey: Data = SwiftProtobuf.Internal.emptyData
+
+    static let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _chain = source._chain
+      _content = source._content
+      _responsePubKey = source._responsePubKey
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        switch fieldNumber {
+        case 1: try decoder.decodeRepeatedMessageField(value: &_storage._chain)
+        case 2:
+          var v: P_Query?
+          if let current = _storage._content {
+            try decoder.handleConflictingOneOf()
+            if case .query(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._content = .query(v)}
+        case 3:
+          var v: P_Bulk?
+          if let current = _storage._content {
+            try decoder.handleConflictingOneOf()
+            if case .bulk(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {_storage._content = .bulk(v)}
+        case 4: try decoder.decodeSingularBytesField(value: &_storage._responsePubKey)
+        default: break
+        }
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if !_storage._chain.isEmpty {
+        try visitor.visitRepeatedMessageField(value: _storage._chain, fieldNumber: 1)
+      }
+      switch _storage._content {
+      case .query(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+      case .bulk(let v)?:
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      case nil: break
+      }
+      if !_storage._responsePubKey.isEmpty {
+        try visitor.visitSingularBytesField(value: _storage._responsePubKey, fieldNumber: 4)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: P_SyncRequest.TBS, rhs: P_SyncRequest.TBS) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._chain != rhs_storage._chain {return false}
+        if _storage._content != rhs_storage._content {return false}
+        if _storage._responsePubKey != rhs_storage._responsePubKey {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension P_SyncRequest.Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = P_SyncRequest.protoMessageName + ".Content"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "tbs"),
     2: .same(proto: "signature"),
   ]
@@ -1561,7 +1711,7 @@ extension P_SyncRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
     try unknownFields.traverse(visitor: &visitor)
   }
 
-  static func ==(lhs: P_SyncRequest, rhs: P_SyncRequest) -> Bool {
+  static func ==(lhs: P_SyncRequest.Content, rhs: P_SyncRequest.Content) -> Bool {
     if lhs._storage !== rhs._storage {
       let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
         let _storage = _args.0
@@ -1572,146 +1722,6 @@ extension P_SyncRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementa
       }
       if !storagesAreEqual {return false}
     }
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension P_SyncRequest.Content: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = P_SyncRequest.protoMessageName + ".Content"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .same(proto: "query"),
-    2: .same(proto: "bulk"),
-  ]
-
-  fileprivate class _StorageClass {
-    var _content: P_SyncRequest.Content.OneOf_Content?
-
-    static let defaultInstance = _StorageClass()
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _content = source._content
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        switch fieldNumber {
-        case 1:
-          var v: P_Query?
-          if let current = _storage._content {
-            try decoder.handleConflictingOneOf()
-            if case .query(let m) = current {v = m}
-          }
-          try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .query(v)}
-        case 2:
-          var v: P_Bulk?
-          if let current = _storage._content {
-            try decoder.handleConflictingOneOf()
-            if case .bulk(let m) = current {v = m}
-          }
-          try decoder.decodeSingularMessageField(value: &v)
-          if let v = v {_storage._content = .bulk(v)}
-        default: break
-        }
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      switch _storage._content {
-      case .query(let v)?:
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-      case .bulk(let v)?:
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-      case nil: break
-      }
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: P_SyncRequest.Content, rhs: P_SyncRequest.Content) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._content != rhs_storage._content {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
-    if lhs.unknownFields != rhs.unknownFields {return false}
-    return true
-  }
-}
-
-extension P_SyncRequest.TBS: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-  static let protoMessageName: String = P_SyncRequest.protoMessageName + ".TBS"
-  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "channel_id"),
-    2: .same(proto: "seq"),
-    3: .same(proto: "chain"),
-    4: .same(proto: "nonce"),
-    5: .same(proto: "box"),
-    6: .standard(proto: "response_pub_key"),
-  ]
-
-  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      switch fieldNumber {
-      case 1: try decoder.decodeSingularBytesField(value: &self.channelID)
-      case 2: try decoder.decodeSingularUInt32Field(value: &self.seq)
-      case 3: try decoder.decodeRepeatedMessageField(value: &self.chain)
-      case 4: try decoder.decodeSingularBytesField(value: &self.nonce)
-      case 5: try decoder.decodeSingularBytesField(value: &self.box)
-      case 6: try decoder.decodeSingularBytesField(value: &self.responsePubKey)
-      default: break
-      }
-    }
-  }
-
-  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if !self.channelID.isEmpty {
-      try visitor.visitSingularBytesField(value: self.channelID, fieldNumber: 1)
-    }
-    if self.seq != 0 {
-      try visitor.visitSingularUInt32Field(value: self.seq, fieldNumber: 2)
-    }
-    if !self.chain.isEmpty {
-      try visitor.visitRepeatedMessageField(value: self.chain, fieldNumber: 3)
-    }
-    if !self.nonce.isEmpty {
-      try visitor.visitSingularBytesField(value: self.nonce, fieldNumber: 4)
-    }
-    if !self.box.isEmpty {
-      try visitor.visitSingularBytesField(value: self.box, fieldNumber: 5)
-    }
-    if !self.responsePubKey.isEmpty {
-      try visitor.visitSingularBytesField(value: self.responsePubKey, fieldNumber: 6)
-    }
-    try unknownFields.traverse(visitor: &visitor)
-  }
-
-  static func ==(lhs: P_SyncRequest.TBS, rhs: P_SyncRequest.TBS) -> Bool {
-    if lhs.channelID != rhs.channelID {return false}
-    if lhs.seq != rhs.seq {return false}
-    if lhs.chain != rhs.chain {return false}
-    if lhs.nonce != rhs.nonce {return false}
-    if lhs.box != rhs.box {return false}
-    if lhs.responsePubKey != rhs.responsePubKey {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
